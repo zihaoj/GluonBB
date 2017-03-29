@@ -1,0 +1,301 @@
+import ROOT
+from xAH_config import xAH_config
+import sys, os
+
+import shlex
+import argparse
+
+parser = argparse.ArgumentParser(description='Test for extra options')
+o = parser.parse_args(shlex.split(args.extra_options))
+
+systName = "Nominal"
+systVal  = 0
+doSystematics = False
+
+#sys.path.insert(0, os.environ['ROOTCOREBIN']+"/user_scripts/XhhCommon/")
+
+#from XhhResolved_config import *
+c = xAH_config()
+#
+# Basic Setup 
+#
+triggersList = ['L1_4J20',
+                'L1_J100',
+                'L1_3J25.0ETA23',
+                'L1_4J15.0ETA25',
+                'L1_J75_3J20',
+                'HLT_.*bmv2c20.*',
+                'HLT_ht.*',
+                'HLT_j65_bt.*',
+                'HLT_j70_bt.*',
+                'HLT_j75_bt.*',
+                'HLT_j175_bt.*',
+                'HLT_2j35_bt.*',
+                'HLT_2j45_bt.*',
+                'HLT_2j55_bt.*',
+                'HLT_2j65_bt.*',
+                'HLT_2j70_bt.*',
+                'HLT_2j75_bt.*',
+                'HLT_j65_bm.*',
+                'HLT_j70_bm.*',
+                'HLT_j75_bm.*',
+                'HLT_j175_bm.*',
+                'HLT_2j35_bm.*',
+                'HLT_2j45_bm.*',
+                'HLT_2j55_bm.*',
+                'HLT_2j65_bm.*',
+                'HLT_2j70_bm.*',
+                'HLT_2j75_bm.*',
+                'HLT_j225_bl.*',
+                'HLT_j300_bl.*',
+                'HLT_j420.*',
+                'HLT_j440.*',
+                'HLT_j400.*',
+                'HLT_j360.*',
+                'HLT_j380.*',
+                'HLT_j100',
+                'HLT_j110',
+                'HLT_j150',
+                'HLT_j175',
+                'HLT_j200',
+                'HLT_j260',
+                'HLT_.*bperf.*',
+                'HLT_.*boffperf.*',
+                'HLT_3j.*',
+                'HLT_4j.*',
+                'HLT_j3.*a10.*',
+                'HLT_j4.*a10.*',
+                'HLT_j100_2j55_bmedium',
+                'HLT_e24_lhtight_iloose',
+                'HLT_.*bmv2c20.*',
+                'HLT_mu26_imedium']
+
+triggersList= [] # template 
+#triggersList= ["HLT_j300_a10_lcw_sub_L1J75"] # MC
+#triggersList= ["HLT_j420_a10_lcw_L1J100"] # data
+
+triggers = ",".join(triggersList)
+
+c.setalg("BasicEventSelection", { "m_name"                  : "basicEventSel",
+                                  "m_debug"                 : False,
+                                  "m_derivationName"        : "STDM9Kernel",
+                                  "m_applyGRLCut"           : True,
+                                  "m_doPUreweighting"       : False, 
+                                  "m_vertexContainerName"   : "PrimaryVertices",
+                                  "m_PVNTrack"              : 2,
+                                  "m_truthLevelOnly"        : False,
+                                  "m_applyPrimaryVertexCut" : True,
+                                  "m_applyEventCleaningCut" : True,
+                                  "m_applyCoreFlagsCut"     : True,
+                                  "m_triggerSelection"      : triggers, 
+                                  "m_storeTrigDecisions"    : True,
+                                  "m_useMetaData"           : True,
+                                  "m_applyTriggerCut"       : False,
+                                  "m_storePassL1"           : True,
+                                  "m_storePassHLT"          : True,
+                                  "m_storeTrigKeys"         : True,
+                                  "m_GRLxml": "$ROOTCOREBIN/data/xAODAnaHelpers/data16_13TeV.periodAllYear_DetStatus-v83-pro20-15_DQDefects-00-02-04_PHYS_StandardGRL_All_Good_25ns.xml",
+                                  } )
+
+
+c.setalg("MuonCalibrator", { "m_name"                : "Muons", 
+                             "m_inContainerName"     : "Muons", 
+                             "m_outContainerName"    : "Muons_Calib", 
+                             "m_outputAlgoSystNames" : "MuonCalibrator_Syst",
+                             "m_release"             : "Recs2016_08_07",
+                             "m_debug"               : False,
+                             "m_forceDataCalib"      : True,
+                             } )
+
+c.setalg("MuonHistsAlgo", {"m_name":"Muons_Calib/",    "m_inContainerName":"Muons_Calib",  
+                           "m_detailStr" : "kinematic energyLoss", } )
+
+
+c.setalg("MuonSelector", { "m_name"                    : "MuonSelector", 
+                           "m_inContainerName"         : "Muons_Calib", 
+                           "m_outContainerName"        : "Muons_Selected", 
+                           "m_createSelectedContainer" : True,
+                           "m_pT_min"                  : 4*1000,
+                           "m_eta_max"                 : 2.5,
+                           "m_debug"                   : False,
+                           "m_muonType"                : "Combined",
+                           "m_muonType"                : "Combined",
+                           "m_muonQualityStr"          : "Medium",
+                           } )
+
+c.setalg("MuonHistsAlgo", {"m_name":"Muons_Selected/", "m_inContainerName":"Muons_Selected",  
+                           "m_detailStr" : "kinematic quality energyLoss isolation", } )
+
+#
+#  Jet Calibration
+c.setalg("JetCalibrator", { "m_name"                  : "GluonBB_JetCalibrator",
+                            "m_inContainerName"       : "AntiKt10LCTopoTrimmedPtFrac5SmallR20Jets",
+                            "m_jetAlgo"               : "AntiKt10LCTopoTrimmedPtFrac5SmallR20",
+                            "m_outputAlgo"            : "AntiKt10LCTopoTrimmedPtFrac5SmallR20_Calib_Algo_JES",
+                            "m_outContainerName"      : "calibCaloJets_JES",
+                            "m_debug"                 : False,
+                            "m_verbose"               : False,
+                            "m_sort"                  : True,
+                            "m_saveAllCleanDecisions" : True,
+                            "m_calibConfigFullSim"    : "JES_MC15recommendation_FatJet_June2015.config",
+                            "m_calibConfigData"       : "JES_MC15recommendation_FatJet_June2015.config",
+                            "m_doCleaning"            : False, #don't clean large R jets
+                            "m_JESUncertConfig"       : "$ROOTCOREBIN/data/JetUncertainties/UJ_2015/ICHEP2016/HbbTagging_strong.config",
+                            "m_JESUncertMCType"       : "MC15C",
+                            "m_calibSequence"         : "EtaJES_JMS",
+                            "m_setAFII"               : False,
+                            "m_jetCleanCutLevel"      : "LooseBad",
+                            "m_jetCleanUgly"          : True,
+                            "m_cleanParent"           : True,
+                            "m_applyFatJetPreSel"     : True,    # make sure fat-jet uncertainty is applied only in valid region
+                            # Add me when large-R uncertainties become available.
+                            "m_systName"              : systName,
+                            "m_systVal"               : systVal,
+                            })
+
+c.setalg("JetCalibrator", { "m_name"                   : "AntiKt4TopoEM", 
+                            "m_systName"               : "", 
+                            "m_systVal"                : 1,
+                            "m_inContainerName"        : "AntiKt4EMTopoJets",
+                            "m_outContainerName"       : "AntiKt4EMTopoJets_Calib", 
+                            "m_sort"                   : True,
+                            "m_jetAlgo"                : "AntiKt4EMTopo",
+                            "m_outputAlgo"             : "AntiKt4EMTopoJets_Calib_Algo",
+                            "m_calibSequence"          : "JetArea_Residual_Origin_EtaJES_GSC",
+                            "m_calibConfigFullSim"     : "JES_MC15Prerecommendation_April2015.config",
+                            "m_calibConfigData"        : "JES_MC15cRecommendation_May2016.config",
+                            "m_calibConfigAFII"        : "JES_MC15Prerecommendation_AFII_June2015.config",
+                            "m_jetCleanCutLevel"       : "LooseBad",
+                            #                                "m_JESUncertConfig"        : "$ROOTCOREBIN/data/JetUncertainties/JES_2015/Prerec/PrerecJES2015_3NP_Scenario1_25ns.config",
+                            "m_JESUncertConfig"        : "$ROOTCOREBIN/data/JetUncertainties/JES_2015/ICHEP2016/JES2015_SR_Scenario1.config",
+                            "m_JESUncertMCType"        : "MC15",
+                            "m_saveAllCleanDecisions"  : True,                         
+                            "m_setAFII"                : False,
+                            "m_JERUncertConfig"        : "JetResolution/Prerec2015_xCalib_2012JER_ReducedTo9NP_Plots_v2.root",
+                            "m_JERApplyNominal"        : False,
+                            "m_redoJVT"                : True,
+                            "m_systName"               : systName,
+                            "m_systVal"                : systVal,
+                            } )
+
+################
+# JER Smearing #
+################
+c.setalg("FatJetJERTool", { "m_name"                  : "GluonBB_FatJetJERSmearing",
+                            "m_inContainerName"       : "calibCaloJets_JES",
+                            "m_outContainerName"      : "calibCaloJets",
+                            "m_TruthJetContainerName" : "AntiKt10TruthTrimmedPtFrac5SmallR20Jets",
+                            "m_jetAlgo"               : "AntiKt10LCTopoTrimmedPtFrac5SmallR20",
+                            "m_inputAlgo"             : "AntiKt10LCTopoTrimmedPtFrac5SmallR20_Calib_Algo_JES",
+                            "m_outputAlgo"            : "AntiKt10LCTopoTrimmedPtFrac5SmallR20_Calib_Algo",
+                            "m_JERConfig"             : "$ROOTCOREBIN/data/XhhBoosted/JERConfig.root",
+                            "m_runJERSmearing"        : doSystematics,
+                            "m_sort"                  : True,
+                            "m_userSeed"              : 0,
+                            "m_systName"              : "Nominal",      # don't change this
+                            "m_systVal"               : 0,
+                            })
+
+# ###############
+#  Jet Selection#
+# ###############
+c.setalg("JetSelector", { "m_name"                    : "GluonBB_selectCaloJets",
+                          "m_inContainerName"         : "calibCaloJets",
+                          "m_inputAlgo"               : "AntiKt10LCTopoTrimmedPtFrac5SmallR20_Calib_Algo",
+                          "m_outContainerName"        : "selCaloJets",
+                          "m_outputAlgo"              : "selCaloJets_Algo",
+                          "m_decorateSelectedObjects" : False,  
+                          "m_createSelectedContainer" : True,  
+                          "m_cleanJets"               : True,
+                          "m_pT_min"                  : 100e3,
+                          #"m_pT_max"                  : 1500e3,
+                          "m_eta_max"                 : 2.0,
+                          #"m_mass_min"                : 50e3,  # 0.1,
+                          "m_mass_min"                : 0.1, 
+                          "m_useCutFlow"              : True,
+                          "m_doJVF"                   : False
+                          } )
+
+c.setalg("JetSelector", { "m_name"                    : "GluonBB_selectTrackJets",
+                          "m_inContainerName"         : "AntiKt2PV0TrackJets",
+                          "m_outContainerName"        : "selTrackJets",
+                          "m_decorateSelectedObjects" : False,  
+                          "m_createSelectedContainer" : True,  
+                          "m_cleanJets"               : True,
+                          "m_pT_min"                  : 10e3,
+                          "m_eta_max"                 : 2.5,
+                          "m_useCutFlow"              : True,
+                          "m_doJVF"                   : False
+                          } )
+
+c.setalg("JetSelector", { "m_name"                    :  "preSelJetsEMTopoJets",
+                          "m_inContainerName"         :  "AntiKt4EMTopoJets_Calib",
+                          "m_inputAlgo"               :  "AntiKt4EMTopoJets_Calib_Algo",
+                          "m_outContainerName"        :  "AntiKt4EMTopoJets_Calib_preSel",
+                          "m_outputAlgo"              :  "AntiKt4EMTopoJets_Calib_preSel_Algo",
+                          "m_decorateSelectedObjects" :  False, 
+                          "m_createSelectedContainer" :  True, 
+                          "m_cleanJets"               :  False, 
+                          "m_pT_min"                  :  25e3,
+                          "m_eta_max"                 :  2.5,
+                          "m_useCutFlow"              :  True,
+                          "m_doJVT"                   :  True,
+                          "m_jetScaleType"            :  "JetConstitScaleMomentum",
+                          } )
+
+
+
+c.setalg("BJetEfficiencyCorrector", { "m_name"                    : "GluonBB_postselectTrackJets",
+                                      "m_inContainerName"         : "selTrackJets",
+                                      "m_systName"                : ("" if systName == "Nominal" else systName),   # a bit special for b-tagging SF, since "Nominal" will NOT be converted to "" internally 
+                                      "m_systVal"                 : systVal,
+                                      "m_outputSystName"          : "FTSys",
+                                      "m_operatingPt"             : "FixedCutBEff_77",
+                                      "m_operatingPtCDI"          : "FixedCutBEff_77",
+                                      "m_corrFileName"            : "$ROOTCOREBIN/data/xAODAnaHelpers/2016-20_7-13TeV-MC15-CDI-July12_v1.root",
+                                      "m_jetAuthor"               : "AntiKt2PV0TrackJets",
+                                      "m_taggerName"              : "MV2c10",
+                                      "m_decor"                   : "BTag",
+                                      "m_debug"                   : False,
+                                      } )
+#
+#  Event Cuts
+#
+
+c.setalg("SetGluonBBEventCuts", { "m_name"               : "GluonBB_setXhhEventCuts", 
+                                  "m_inTruthParticleName": "TruthParticles",
+                                  "m_inTruthJetName"     : "AntiKt10TruthJets",
+                                  "m_inJetName"          : "selCaloJets",
+                                  "m_leadingJetPtCut"    : 450e3,
+                                  "m_trackJet"           : "GhostAntiKt2TrackJet",
+                                  "m_trackJetPtCut"      : 10e3,
+                                  "m_trackJetEtaCut"     : 2.5,
+                                  "m_outJetName"         : "finalBoostedJets",
+                                  "m_inputAlgo"          : "selCaloJets_Algo",
+                                  "m_outputAlgo"         : "finalBoostedJets_Algo",
+                                  "m_dothirdJet"         : True,
+                                  "m_dothirdTrkJet"      : True,
+                                  "m_debug"      : False,
+                                  } )
+
+#c.setalg("GluonBBMiniNTuple", { "m_name"                       : "MiniNTuple",
+#                                "m_boostedGluoncandName"       : "finalBoostedJets",
+#                                "m_FatJetPtSkimCut"            : 450,
+#                                "m_FatJetPtTruthCut"           : 0, #450, 0
+#                                "m_FatJetTruthNTrkJetMatched"  : 0, # 2, 0
+#                                "m_resolvedJetsName"           : "AntiKt4EMTopoJets_Calib_preSel", 
+#                                "m_debug"                      : False,
+#                                "m_trigDetailStr"              : "passTriggers",
+#                                "m_inTruthParticleName"        : "TruthParticles",
+#                                "m_inTruthJetName"             : "AntiKt10TruthJets",
+#                                "m_muonContainerName"          : "Muons_Selected", 
+#                                "m_muonDetailStr"              : "kinematic quality energyLoss isolation", 
+#                                "m_doBoosted"                  : True,
+#                                "m_ignoreRecoCuts"             : False, ## False if running reco
+#                                } )
+
+c.setalg("GluonBBTemplateHisto", { "m_name"                     : "TrkJetTemplate",
+                                   "m_inTrackJetName"           : "selTrackJets",
+                                   "m_muonContainerName"          : "Muons_Selected", 
+                                   "m_debug"                    : True,
+                                } )

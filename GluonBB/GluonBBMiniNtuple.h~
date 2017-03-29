@@ -1,0 +1,241 @@
+#ifndef GluonBBMiniNtuple_GluonBBMiniNtuple_H
+#define GluonBBMiniNtuple_GluonBBMiniNtuple_H
+
+#include <EventLoop/StatusCode.h>
+#include <EventLoop/Algorithm.h>
+//algorithm wrapper
+#include "xAODAnaHelpers/Algorithm.h"
+
+//algorithm wrapper
+#include "xAODAnaHelpers/Algorithm.h"
+
+#include "JetSubStructureUtils/BoostedXbbTag.h"
+#include "JetSubStructureUtils/BosonTag.h"
+
+#include "xAODRootAccess/Init.h"
+#include "xAODRootAccess/TEvent.h"
+#include "xAODRootAccess/TStore.h"
+#include "TTree.h"
+#include "TH1D.h"
+
+#include <xAODTruth/TruthParticleContainer.h>
+
+class HelpTreeBase;
+
+class GluonBBMiniNtuple : public xAH::Algorithm
+{
+  // put your configuration variables here as public variables.
+  // that way they can be set directly from CINT and python.
+public:
+
+  std::string m_name;                  
+  TH1D* m_cutflowHist;    //!
+  TH1D* m_cutflowHistW;   //!
+  int m_cutflowFirst;     //!
+  int m_iCutflow;         //!
+  bool m_isMC;            //!
+
+  xAOD::TEvent *m_event;               //!
+  xAOD::TStore *m_store;               //!
+
+  std::string m_resolvedJetsName;
+  std::string m_resolvedHcandName;
+  std::string m_lepTopCandName;
+  std::string m_boostedHcandName;
+
+  std::string m_evtDetailStr;
+  std::string m_trigDetailStr;
+  std::string m_resolvedJetDetailStr;
+  std::string m_boostedJetDetailStr;
+  std::string m_boostedFatJetDetailStr;
+  std::string m_lepTopJetDetailStr;
+  std::string m_truthDetailStr;
+  std::string m_inCaloJetName;
+  std::string m_inTrackJetName;
+  std::string m_inTruthParticleName;
+  //std::string m_inOtherResolvedJetsName;
+  std::string m_muonContainerName;
+  std::string m_muonDetailStr;
+  bool m_doResolutionStudy;
+  bool m_debug;
+  bool m_doXhhTagging;
+  bool m_doFatJetMassCut;
+  double m_FatJetPtSkimCut;
+  bool m_storeLeptonVeto;
+  bool m_storeMETVeto;
+  bool m_doResolved;
+  bool m_doLeptop;
+  bool m_doBoosted;
+  std::string m_eventCuts;
+  std::string m_resolvedSysName;      
+  std::string m_boostedSysName;     
+
+private:
+
+  std::map< std::string, HelpTreeBase* > m_helpTree; //!
+  JetSubStructureUtils::BoostedXbbTag* m_higgsTaggerLoose = nullptr;  //! 
+  JetSubStructureUtils::BoostedXbbTag* m_higgsTaggerMedium = nullptr; //!
+  JetSubStructureUtils::BoostedXbbTag* m_higgsTaggerTight = nullptr;  //!
+  JetSubStructureUtils::BosonTag*      m_WbosonTaggerMedium = nullptr; //!
+  JetSubStructureUtils::BosonTag*      m_ZbosonTaggerMedium = nullptr; //!
+  JetSubStructureUtils::BosonTag*      m_WbosonTaggerTight = nullptr; //!
+  JetSubStructureUtils::BosonTag*      m_ZbosonTaggerTight = nullptr; //!
+
+private: 
+
+  // Truth variables
+  double b_truth_mtt;
+
+
+  // Event selection flags
+  bool b_EventPass_XhhL1;
+  bool b_EventPass_XhhHLT;
+  bool b_EventPass_XhhTrig;
+
+
+  // Higgs candidates from resolved selection
+  int                b_hcand_resolved_n;
+  std::vector<float> b_hcand_resolved_pt;
+  std::vector<float> b_hcand_resolved_eta;
+  std::vector<float> b_hcand_resolved_phi;
+  std::vector<float> b_hcand_resolved_m;
+  std::vector<float> b_hcand_resolved_dRjj;
+
+  std::vector< std::vector<int> >   b_jet_ak4emtopo_asso_idx_in_resolvedJets;
+
+
+
+  // Leptonic Tops
+  std::vector<float> b_leptop_pt;
+  std::vector<float> b_leptop_eta;
+  std::vector<float> b_leptop_phi;
+  std::vector<float> b_leptop_m;
+  std::vector<float> b_leptop_dRmj;
+
+  std::vector<int>   b_leptop_jet_idx_in_lepTopJets;
+  
+  std::vector<float> b_leptop_muon_pt;
+  std::vector<float> b_leptop_muon_eta;
+  std::vector<float> b_leptop_muon_phi;
+  std::vector<float> b_leptop_muon_m;
+  std::vector<float> b_leptop_muon_ptcone20;
+
+  std::vector<float> b_leptop_met      ;
+  std::vector<float> b_leptop_metphi   ;
+  std::vector<float> b_leptop_dPhimmet ;
+  std::vector<float> b_leptop_Mt       ;
+
+  // Higgs candidates from boosted selection
+  int                b_hcand_boosted_n;
+  std::vector<float> b_hcand_boosted_pt;
+  std::vector<float> b_hcand_boosted_eta;
+  std::vector<float> b_hcand_boosted_phi;
+  std::vector<float> b_hcand_boosted_m;
+  std::vector<int>   b_hcand_boosted_htag_loose;
+  std::vector<int>   b_hcand_boosted_htag_medium;
+  std::vector<int>   b_hcand_boosted_htag_tight;
+  std::vector<int>   b_hcand_boosted_Wtag_medium;
+  std::vector<int>   b_hcand_boosted_Ztag_medium;
+  std::vector<int>   b_hcand_boosted_Wtag_tight;
+  std::vector<int>   b_hcand_boosted_Ztag_tight;
+  std::vector<float> b_hcand_boosted_dRjj;
+  std::vector<float> b_hcand_boosted_D2;
+  std::vector<float> b_hcand_boosted_Tau21;
+  std::vector<float> b_hcand_boosted_Tau21WTA;
+  std::vector<int>   b_hcand_boosted_nTrack;
+  std::vector<int>   b_hcand_boosted_nHBosons;
+  std::vector<int>   b_hcand_boosted_nWBosons;
+  std::vector<int>   b_hcand_boosted_nZBosons;
+
+  std::vector<int>                  b_jet_ak2track_asso_n;
+  std::vector<int>                  b_jet_ak2track_asso_n_addl;
+  std::vector< std::vector<float> > b_jet_ak2track_asso_pt;
+  std::vector< std::vector<float> > b_jet_ak2track_asso_eta;
+  std::vector< std::vector<float> > b_jet_ak2track_asso_phi;
+  std::vector< std::vector<float> > b_jet_ak2track_asso_m;
+  std::vector< std::vector<float> > b_jet_ak2track_asso_MV2c00;
+  std::vector< std::vector<float> > b_jet_ak2track_asso_MV2c10;
+  std::vector< std::vector<float> > b_jet_ak2track_asso_MV2c20;
+  std::vector< std::vector<float> > b_jet_ak2track_asso_MV2c100;
+  std::vector< std::vector< std::vector<float> > >  b_jet_ak2track_asso_sys;
+  std::vector<std::string> b_jet_ak2track_asso_sysname;
+  std::vector<float>  b_boosted_bevent_sys;
+
+  // TruthJet of Higgs candidates, for MC only
+  int                 b_truth_hcand_boosted_n;
+  std::vector<int>    b_truth_hcand_boosted_matched;
+  std::vector<float>  b_truth_hcand_boosted_pt;
+  std::vector<float>  b_truth_hcand_boosted_eta;
+  std::vector<float>  b_truth_hcand_boosted_phi;
+  std::vector<float>  b_truth_hcand_boosted_m;
+
+  // Loose lepton for veto purpose
+  int                 b_n_muons_veto;
+  int                 b_n_electrons_veto;
+
+  // MET for veto purpose
+  double              b_METsum;
+  double              b_METphi;
+
+  float m_mcEventWeight; 
+  float m_weight;
+  float m_weight_xs;
+
+  /* //Boosted Branches */
+  /* std::vector<int> b_n_asso_with_sv; */
+  /* int b_n_pass_htagger_loose; */
+  /* int b_n_pass_htagger_medium; */
+  /* int b_n_pass_htagger_tight; */
+
+  //
+  // For cutflow counting
+  //
+  void passCut();
+
+  //
+  // For mtt slices
+  //
+  bool getEventMtt(const xAOD::TruthParticleContainer* Truths, double& mtt);
+
+  //
+  // KillPileupFluctuation (remove high weight event in JZXW). Inherited from ProofAna
+  //
+  int killPileupFluctuation();    // return 1 means event is good; 0 means event is not good
+
+  //
+  // Substructure Computation 
+  //
+
+  double getD2(const xAOD::Jet* inputJet);
+  double getTau21(const xAOD::Jet* inputJet, bool doWTA);
+
+public:
+
+  // this is a standard constructor
+  GluonBBMiniNtuple ();                                           //!
+
+  // these are the functions inherited from Algorithm
+  virtual EL::StatusCode setupJob (EL::Job& job);           //!
+  virtual EL::StatusCode fileExecute ();                    //!
+  virtual EL::StatusCode histInitialize ();                 //!
+  virtual EL::StatusCode changeInput (bool firstFile);      //!
+  virtual EL::StatusCode initialize ();                     //!
+  virtual EL::StatusCode execute ();                        //!
+  virtual EL::StatusCode postExecute ();                    //!
+  virtual EL::StatusCode finalize ();                       //!
+  virtual EL::StatusCode histFinalize ();                   //!
+
+  virtual EL::StatusCode AddTree (std::string);      //!
+
+
+  // these are the functions not inherited from Algorithm
+  EL::StatusCode executeSingle(std::string resolvedSys="", 
+                               std::string boostedSys ="", 
+			       bool countEvents = false);
+
+
+  // this is needed to distribute the algorithm to the workers
+  ClassDef(GluonBBMiniNtuple, 1);                                 //!
+};
+
+#endif
